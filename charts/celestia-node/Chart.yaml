@@ -9,6 +9,9 @@ dependencies:
   tags:
   - bitnami-common
   version: 2.x.x
+- name: common-celestia-node
+  version: 0.2.0
+  repository: "file://../common-celestia-node"
 description: Celestia Node
 home: https://celestia.org
 icon: https://celestia.org/static/celestia-logo-29451ae35d3bb72cc4b0f17712d44c3a.svg

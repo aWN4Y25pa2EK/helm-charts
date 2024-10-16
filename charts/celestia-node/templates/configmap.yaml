@@ -1,0 +1,1 @@
+{{ include "common-celestia-node.configmap" . }}
