@@ -1,4 +1,4 @@
-name: Overlay DA - Arabica Release Node Charts
+name: Mocha - Overlay DA
 
 on:
   push:
