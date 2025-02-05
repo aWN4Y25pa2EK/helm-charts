@@ -72,7 +72,7 @@ jobs:
       - name: Prepare charts directory
         run: |
           mkdir -p /tmp/charts-backup
-          mv charts/celestia-app /tmp/charts-backup/
+          mv charts/overlays/da /tmp/charts-backup/
           
       - name: Run chart-releaser for celestia-node
         uses: helm/chart-releaser-action@v1.6.0
