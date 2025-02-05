@@ -1,4 +1,4 @@
-name: Overlay DA - Arabica Release Node Charts
+yname: Overlay DA - Arabica Release Node Charts
 
 on:
   push:
@@ -69,11 +69,6 @@ jobs:
         run: |
           helm dependency update charts/celestia-node
 
-      - name: Prepare charts directory
-        run: |
-          mkdir -p /tmp/charts-backup
-          mv charts/celestia-app /tmp/charts-backup/
-
       - name: Run chart-releaser for celestia-node
         uses: helm/chart-releaser-action@v1.6.0
         with:
@@ -81,8 +76,3 @@ jobs:
           packages_with_index: "true"
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-
-      - name: Restore charts directory
-        if: always()
-        run: |
-          mv /tmp/charts-backup/celestia-app charts/
