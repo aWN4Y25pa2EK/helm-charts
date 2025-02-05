@@ -1,4 +1,4 @@
-name: Overlay DA - Mainnet Release Node Charts
+name: Mainnet Release Node Charts
 
 on:
   push:
@@ -69,12 +69,13 @@ jobs:
         run: |
           helm dependency update charts/celestia-node
 
-      - name: Prepare charts directory
+      # Backup overlays to avoid interfering with the main charts release
+      - name: Backup overlays directory
         run: |
           mkdir -p /tmp/charts-backup
           mv charts/overlays/da /tmp/charts-backup/
-          
-      - name: Run chart-releaser for celestia-node
+
+      - name: Run chart-releaser for main charts
         uses: helm/chart-releaser-action@v1.6.0
         with:
           charts_dir: "charts"
@@ -82,15 +83,17 @@ jobs:
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
-      - name: Run chart-releaser for celestia-node overlays
+      - name: Run chart-releaser for overlays
         uses: helm/chart-releaser-action@v1.6.0
         with:
           charts_dir: "charts/overlays/da"
           packages_with_index: "true"
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          
-      - name: Restore charts directory
+
+      # Restore the overlays directory
+      - name: Restore overlays directory
         if: always()
         run: |
-          mv /tmp/charts-backup/celestia-app charts/
+          mkdir -p charts/overlays
+          mv /tmp/charts-backup/da charts/overlays/da
