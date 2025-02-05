@@ -69,6 +69,10 @@ jobs:
         run: |
           helm dependency update charts/celestia-node
 
+      - name: Remove any old chart packages
+        run: |
+          rm -f charts/overlays/da/celestia-node-arabica/*.tgz
+
       - name: Run chart-releaser for celestia-node
         uses: helm/chart-releaser-action@v1.7.0
         with:
