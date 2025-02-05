@@ -1,4 +1,4 @@
-name: Mocha - Overlay DA
+name: Overlay DA - Mocha Release Node Charts
 
 on:
   push:
@@ -31,7 +31,7 @@ jobs:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
       - name: Run chart-releaser for common-celestia-node
-        uses: helm/chart-releaser-action@v1.6.0
+        uses: helm/chart-releaser-action@v1.7.0
         with:
           charts_dir: "common-charts"
           packages_with_index: "true"
@@ -69,10 +69,16 @@ jobs:
         run: |
           helm dependency update charts/celestia-node
 
+      # ignore releases for celestia-node-arabica
+      - name: Prepare charts directory
+        run: |
+          mkdir -p /tmp/charts-backup
+          mv charts/overlays/da/celestia-node-arabica /tmp/charts-backup/
+
       - name: Run chart-releaser for celestia-node
-        uses: helm/chart-releaser-action@v1.6.0
+        uses: helm/chart-releaser-action@v1.7.0
         with:
-          charts_dir: "charts/overlays/da"
+          charts_dir: "charts"
           packages_with_index: "true"
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
