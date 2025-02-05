@@ -81,6 +81,14 @@ jobs:
           packages_with_index: "true"
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Run chart-releaser for celestia-node overlays
+        uses: helm/chart-releaser-action@v1.6.0
+        with:
+          charts_dir: "charts/overlays/da"
+          packages_with_index: "true"
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           
       - name: Restore charts directory
         if: always()
