@@ -6,15 +6,17 @@ on:
       - main
     paths:
       - 'charts/celestia-node/**'
+      - 'charts/overlays/da/**'
       - 'common-charts/common-celestia-node/**'
   workflow_dispatch:
 
 jobs:
-  release-common-celestia-node:
+  release-all:
     permissions:
       contents: write
     runs-on: ubuntu-latest
     steps:
+      # Checkout and initial configuration
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -30,6 +32,7 @@ jobs:
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
+      # Step 1: Release common dependency charts
       - name: Run chart-releaser for common-celestia-node
         uses: helm/chart-releaser-action@v1.6.0
         with:
@@ -38,44 +41,22 @@ jobs:
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
-  release-celestia-node:
-    permissions:
-      contents: write
-    runs-on: ubuntu-latest
-    needs: release-common-celestia-node
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Configure Git
+      # Step 2: Prepare main charts release by temporarily removing dependency chart (celestia-app)
+      - name: Backup celestia-app directory
         run: |
-          git config user.name "$GITHUB_ACTOR"
-          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          mkdir -p /tmp/charts-backup
+          mv charts/celestia-app /tmp/charts-backup/
 
-      - name: Install Helm
-        uses: azure/setup-helm@v4
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-
-      - name: Add Helm Repositories
+      # Step 3: Add Helm repos and update dependencies for the main chart (celestia-node)
+      - name: Add Helm Repositories and update dependencies
         run: |
           helm repo add bitnami https://charts.bitnami.com/bitnami
           helm repo add celestiaorg https://celestiaorg.github.io/helm-charts
           helm repo update
-
-      - name: Update Helm Dependencies for celestia-node
-        run: |
           helm dependency update charts/celestia-node
 
-      # Backup overlays to avoid interfering with the main charts release
-      - name: Backup overlays directory
-        run: |
-          mkdir -p /tmp/charts-backup
-          mv charts/overlays/da /tmp/charts-backup/
-
-      - name: Run chart-releaser for main charts
+      # Step 4: Release main charts (celestia-node) from charts/
+      - name: Run chart-releaser for celestia-node
         uses: helm/chart-releaser-action@v1.6.0
         with:
           charts_dir: "charts"
@@ -83,17 +64,26 @@ jobs:
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
-      - name: Run chart-releaser for overlays
+      # Step 5: Restore the dependency chart (celestia-app) back to charts/
+      - name: Restore celestia-app directory
+        if: always()
+        run: |
+          mv /tmp/charts-backup/celestia-app charts/
+
+      # Step 6: Release overlay chart for Mocha (charts/overlays/da/celestia-node-mocha)
+      - name: Run chart-releaser for overlay: celestia-node-mocha
         uses: helm/chart-releaser-action@v1.6.0
         with:
-          charts_dir: "charts/overlays/da"
+          charts_dir: "charts/overlays/da/celestia-node-mocha"
           packages_with_index: "true"
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
-      # Restore the overlays directory
-      - name: Restore overlays directory
-        if: always()
-        run: |
-          mkdir -p charts/overlays
-          mv /tmp/charts-backup/da charts/overlays/da
+      # Step 7: Release overlay chart for Arabica (charts/overlays/da/celestia-node-arabica)
+      - name: Run chart-releaser for overlay: celestia-node-arabica
+        uses: helm/chart-releaser-action@v1.6.0
+        with:
+          charts_dir: "charts/overlays/da/celestia-node-arabica"
+          packages_with_index: "true"
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
