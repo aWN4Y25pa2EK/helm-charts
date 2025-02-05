@@ -73,10 +73,16 @@ jobs:
         run: |
           rm -f charts/overlays/da/celestia-node-arabica/*.tgz
 
+      # ignore releases for celestia-node-mocha
+      - name: Prepare charts directory
+        run: |
+          mkdir -p /tmp/charts-backup
+          mv charts/overlays/da/celestia-node-mocha /tmp/charts-backup/
+
       - name: Run chart-releaser for celestia-node
         uses: helm/chart-releaser-action@v1.7.0
         with:
-          charts_dir: "charts/overlays/da/celestia-node-arabica"
+          charts_dir: "charts/overlays/da"
           packages_with_index: "true"
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
